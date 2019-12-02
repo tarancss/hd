@@ -1,2 +1,2 @@
-# ethcli
+# hd
 Hierarchical deterministic wallet for Ethereum
