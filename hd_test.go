@@ -18,7 +18,6 @@ func TestHdWallet(t *testing.T) {
 	if err != nil {
 		t.Errorf("Init %e", err)
 	}
-	// fmt.Printf("w:%+v\n", w)
 
 	// We generate 3 addresses for wallet 2, hd.External, indices from 0 to 2.
 	var expected [][]string = [][]string{
@@ -40,7 +39,6 @@ func TestHdWallet(t *testing.T) {
 		if bytes.Compare(addr, addrExp) != 0 {
 			t.Errorf("Key %d does not match. Got:%x, expected:%x", i, key, keyExp)
 		}
-		// fmt.Printf("address %d:%x key:%x err:%e\n", i, addr, key, err)
 	}
 	return
 }
