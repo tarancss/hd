@@ -1,5 +1,6 @@
 # hd
-Hierarchical deterministic wallet for Ethereum
+Hierarchical deterministic wallet for Ethereum.
+[![Go Report Card](https://goreportcard.com/badge/github.com/tarancss/hd)](https://goreportcard.com/report/github.com/tarancss/hd)
 
 #### Usage
 This package provides hierarchical deterministic wallet ("HD wallet") functionality according to BIP39, BIP32 and BIP44.

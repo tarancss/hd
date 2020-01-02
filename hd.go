@@ -17,16 +17,21 @@ import (
 )
 
 const (
-	External uint8  = 0x00 // Use this flag to generate addresses used for external inputs or deposits.
-	Change   uint8  = 0x01 // Internal chain or change addresses.
-	purpose  uint32 = 44   // BIP44
-	coin     uint32 = 60   // Ethereum
+	// External addresses are used for inputs or deposits.
+	External uint8 = 0x00
+	// Change addresses are used for internal use.
+	Change uint8 = 0x01
+
+	purpose  uint32 = 44 // BIP44
+	coin     uint32 = 60 // Ethereum
 	hardened uint32 = 0x80000000
 )
 
 var (
+	// ErrInvalidSeedLen, recommended seed length is 64-byte
 	ErrInvalidSeedLen error = errors.New("ErrInvalidSeedLen: length of seed is invalid")
-	ErrUnusableSeed   error = errors.New("ErrUnusableSeed: the master key cannot be used")
+	// ErrUnusableSeed will be reported if the seed cannot be used
+	ErrUnusableSeed error = errors.New("ErrUnusableSeed: the master key cannot be used")
 )
 
 // HdWallet is a composed type
@@ -68,9 +73,9 @@ func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32) (addr, key 
 	if err != nil {
 		return
 	}
-	private_key, _ := tmpW.ECPrivKey()
-	prv = ecdsa.PrivateKey(*private_key)
-	return crypto.PubkeyToAddress(private_key.PublicKey).Bytes(), crypto.FromECDSA(&prv), prv, nil
+	privateKey, _ := tmpW.ECPrivKey()
+	prv = ecdsa.PrivateKey(*privateKey)
+	return crypto.PubkeyToAddress(privateKey.PublicKey).Bytes(), crypto.FromECDSA(&prv), prv, nil
 }
 
 // getHdMaster generates a Hd master wallet that can be used for many coins.
