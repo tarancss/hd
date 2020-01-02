@@ -1,4 +1,3 @@
-// Package hd
 // This is the testing of functions of the HD wallet
 // Tests are run and compared against values provided by https://iancoleman.io/bip39/
 package hd

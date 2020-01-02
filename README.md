@@ -1,5 +1,7 @@
 # hd
 Hierarchical deterministic wallet for Ethereum.
+
+[![GoDoc](https://godoc.org/github.com/tarancss/hd?status.svg)](https://godoc.org/github.com/tarancss/hd)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tarancss/hd)](https://goreportcard.com/report/github.com/tarancss/hd)
 
 #### Usage
