@@ -1,7 +1,8 @@
-// Package hd provides hierarchical deterministic wallet ("HD wallet") functionality according to BIP39, BIP32 and BIP44.
-// The initialization of the wallet requires a 64-byte seed. It is recommended to generate seeds using BIP39 out of a 24 word mnemonic and passphrase which are easy to remember.
+// Package hd provides hierarchical deterministic wallet (HD wallet) functionality according to BIP39, BIP32 and BIP44.
+// The initialization of the wallet requires a 64-byte seed. It is recommended to generate seeds using BIP39 out of a
+// 24 word mnemonic and passphrase which are easy to remember.
 // Once the HdWallet is initialized, you can easily generate any address.
-// For a full description of what a HD wallet is, please read here: https://en.bitcoinwiki.org/wiki/Deterministic_wallet
+// For a full description of what a HD wallet is, please read: https://en.bitcoinwiki.org/wiki/Deterministic_wallet
 package hd
 
 import (
@@ -9,6 +10,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec"
@@ -28,14 +30,16 @@ const (
 )
 
 var (
-	// ErrInvalidSeedLen, recommended seed length is 64-byte
-	ErrInvalidSeedLen error = errors.New("ErrInvalidSeedLen: length of seed is invalid")
-	// ErrUnusableSeed will be reported if the seed cannot be used
-	ErrUnusableSeed error = errors.New("ErrUnusableSeed: the master key cannot be used")
+	// ErrInternal wraps errors reported by deps.
+	ErrInternal error = errors.New("hd internal error")
+	// ErrInvalidSeedLen will be reported when setting a wrong length (recommended seed length is 64-byte).
+	ErrInvalidSeedLen error = errors.New("hd: length of seed is invalid")
+	// ErrUnusableSeed will be reported if the seed cannot be used.
+	ErrUnusableSeed error = errors.New("hd: the master key cannot be used")
 )
 
-// HdWallet is a composed type
-type HdWallet struct {
+// HdWallet is a composed type.
+type HdWallet struct { //nolint:golint // changing would break compatibility
 	*hdkeychain.ExtendedKey // HD wallet branch from which account/addresses are generated
 }
 
@@ -49,14 +53,20 @@ func Init(seed []byte) (*HdWallet, error) {
 	// generate a BIP44 and Ethereum branch
 	tmpW, err := master.Child(hardened + purpose)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w ", ErrInternal, err)
 	}
+
 	tmpW, err = tmpW.Child(hardened + coin)
-	return &HdWallet{tmpW}, err
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w ", ErrInternal, err)
+	}
+
+	return &HdWallet{ExtendedKey: tmpW}, nil
 }
 
 // Address generates an address for 'wallet', flg should be either external or change and address number.
-func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32) (addr, key []byte, prv ecdsa.PrivateKey, err error) {
+func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32) (
+	addr, key []byte, prv ecdsa.PrivateKey, err error) {
 	var tmpW *hdkeychain.ExtendedKey
 	// get account
 	tmpW, err = w.Child(hardened + wallet)
@@ -73,8 +83,10 @@ func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32) (addr, key 
 	if err != nil {
 		return
 	}
+
 	privateKey, _ := tmpW.ECPrivKey()
 	prv = ecdsa.PrivateKey(*privateKey)
+
 	return crypto.PubkeyToAddress(privateKey.PublicKey).Bytes(), crypto.FromECDSA(&prv), prv, nil
 }
 
@@ -88,7 +100,10 @@ func getHdMaster(seed []byte) (*hdkeychain.ExtendedKey, error) {
 	// First take the HMAC-SHA512 of the master key and the seed data:
 	//   I = HMAC-SHA512(Key = "Bitcoin seed", Data = S)
 	hmac512 := hmac.New(sha512.New, []byte("Bitcoin seed"))
-	hmac512.Write(seed)
+	if _, err := hmac512.Write(seed); err != nil {
+		return nil, fmt.Errorf("%s: %w ", ErrInternal, err)
+	}
+
 	lr := hmac512.Sum(nil)
 
 	// Split "I" into two 32-byte sequences where left is master secret key and right is master chain code
@@ -102,6 +117,7 @@ func getHdMaster(seed []byte) (*hdkeychain.ExtendedKey, error) {
 	}
 
 	parentFP := []byte{0x00, 0x00, 0x00, 0x00}
+
 	return hdkeychain.NewExtendedKey([]byte{0x04, 0x88, 0xad, 0xe4}, secretKey, chainCode,
 		parentFP, 0, 0, true), nil // starts with xprv -> {0x04, 0x88, 0xad, 0xe4}
 }
