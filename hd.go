@@ -48,7 +48,7 @@ func Init(seed []byte) (*HdWallet, error) {
 	// generate a master wallet
 	master, err := getHdMaster(seed)
 	if err != nil {
-		return &HdWallet{}, err
+		return nil, err
 	}
 	// generate a BIP44 and Ethereum branch
 	tmpW, err := master.Child(hardened + purpose)
@@ -65,8 +65,8 @@ func Init(seed []byte) (*HdWallet, error) {
 }
 
 // Address generates an address for 'wallet', flg should be either external or change and address number.
-func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32) (
-	addr, key []byte, prv ecdsa.PrivateKey, err error) {
+func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32,
+) (addr, key []byte, prv ecdsa.PrivateKey, err error) {
 	var tmpW *hdkeychain.ExtendedKey
 	// get account
 	tmpW, err = w.Child(hardened + wallet)

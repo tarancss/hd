@@ -20,7 +20,7 @@ func TestHdWallet(t *testing.T) {
 
 	// We generate 3 addresses for wallet 2, hd.External, indices from 0 to 2.
 	var (
-		expected [][]string = [][]string{
+		expected = [][]string{
 			{"0xD43E2870777916Ede1f5Cc43F14f8C0741e11f96", "0x735e6eec7fbd869aafa61e50921b101eebc1d6961b8019a76bcf27cade1304b7"},
 			{"0xF4cEFC8d1AfaA51d5A5E7f57d214B60429cA4378", "0xfa7d6a67439ec17e07c10f10a4a9007e46583b5219cb909c8b474398b7216917"},
 			{"0x8A1847459c5FCD66f0B29012a21A2D5A314Ef1D0", "0x99c59090d814b1a3eb2b1f1715e7e7a09cbf8a770495a9a7836fb02226f8fd44"},
