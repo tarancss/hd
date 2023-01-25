@@ -14,7 +14,7 @@ import (
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -51,12 +51,12 @@ func Init(seed []byte) (*HdWallet, error) {
 		return nil, err
 	}
 	// generate a BIP44 and Ethereum branch
-	tmpW, err := master.Child(hardened + purpose)
+	tmpW, err := master.Derive(hdkeychain.HardenedKeyStart + purpose)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w ", ErrInternal, err)
 	}
 
-	tmpW, err = tmpW.Child(hardened + coin)
+	tmpW, err = tmpW.Derive(hdkeychain.HardenedKeyStart + coin)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w ", ErrInternal, err)
 	}
@@ -69,25 +69,25 @@ func (w *HdWallet) Address(wallet uint32, flg uint8, addrNum uint32,
 ) (addr, key []byte, prv ecdsa.PrivateKey, err error) {
 	var tmpW *hdkeychain.ExtendedKey
 	// get account
-	tmpW, err = w.Child(hardened + wallet)
+	tmpW, err = w.Derive(hdkeychain.HardenedKeyStart + wallet)
 	if err != nil {
 		return
 	}
 	// get external
-	tmpW, err = tmpW.Child(uint32(flg & Change))
+	tmpW, err = tmpW.Derive(uint32(flg & Change))
 	if err != nil {
 		return
 	}
 	// get index to be used as address
-	tmpW, err = tmpW.Child(hardened + addrNum)
+	tmpW, err = tmpW.Derive(hdkeychain.HardenedKeyStart + addrNum)
 	if err != nil {
 		return
 	}
 
 	privateKey, _ := tmpW.ECPrivKey()
-	prv = ecdsa.PrivateKey(*privateKey)
+	prv = *privateKey.ToECDSA()
 
-	return crypto.PubkeyToAddress(privateKey.PublicKey).Bytes(), crypto.FromECDSA(&prv), prv, nil
+	return crypto.PubkeyToAddress(prv.PublicKey).Bytes(), crypto.FromECDSA(&prv), prv, nil
 }
 
 // getHdMaster generates a Hd master wallet that can be used for many coins.
